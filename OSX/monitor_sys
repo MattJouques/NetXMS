@@ -1,0 +1,133 @@
+#!/bin/bash
+#
+# Script to monitor processes
+#
+
+#
+# Script Variables
+#
+_SName=monitor_sys
+
+#
+# Command Line Check
+#
+if [ $# -eq 0 ]
+   then 
+	echo "Error-1" 
+	exit 1
+fi
+
+#
+# Help Function
+#
+if [[ "$1" == -h ]]; then
+	echo ""
+	echo "Help function for: $_SName"
+        echo ""
+        echo "Available Switches:"
+        echo "-TotalCPU		Check CPU utilisation"
+	echo "-UserCPU		Check User CPU utilisation"
+	echo "-SysCPU		Check System CPU utilisation"
+        echo "-PhysMem		Check Physical memory Total"
+	echo "-FreeMem		Check free memory"
+	echo "-VMT		Check Total Virtual Memory"
+        echo "-VMF		Check Free Virtual memory"
+	echo "-NetIn		Check inbound network traffic"
+	echo "-NetOut		Check outbound network traffic"
+        echo "-h		Display this help"
+        echo ""
+        echo "Usage: 	monitor_sys -switch"
+        echo ""
+        echo "This script is designed to return a single value for use in Monitoring applications"
+	echo ""
+	exit 1
+fi
+
+#
+# Get requested info
+#
+if [[ "$1" == -m ]]
+    then
+	echo "$(/usr/bin/top -l 1 -pid "$p_pid" -stats "MEM" | tail -n 1 | head -n 2)"
+fi
+if [[ "$1" == -c ]]
+    then
+        #echo "$(/usr/bin/top -l 1 -pid "$p_pid" | grep "$p_pid" | awk '{print $3}')"
+	echo "$(/usr/bin/top -l 1 -pid 98 -stats "CPU"  | tail -n 1 | head -n 2)"
+fi
+
+
+####################
+
+# Total CPU Utilisation
+
+if [[ "$1" == -TotalCPU ]]
+    then
+	user=$(top -l 1 | head -n 10 | grep CPU | awk '{print $3}' | cut -d "%" -f1)
+	sys=$(top -l 1 | head -n 10 | grep CPU | awk '{print $5}' | cut -d "%" -f1)
+	echo "$user + $sys" | bc
+fi
+
+# User CPU
+
+if [[ "$1" == -UserCPU ]]
+    then
+        user=$(top -l 1 | head -n 10 | grep CPU | awk '{print $3}' | cut -d "%" -f1)
+        echo "$user"
+fi
+
+# System CPU
+
+if [[ "$1" == -SysCPU ]]
+    then
+        sys=$(top -l 1 | head -n 10 | grep CPU | awk '{print $5}' | cut -d "%" -f1)
+        echo "$sys"
+fi
+
+
+# Physical Memory in wired
+
+if [[ "$1" == -PhysMem ]]
+    then
+	echo "$(top -l 1 | head -n 10 | grep PhysMem | awk '{print $4}' | cut -d "(" -f2)"
+fi
+
+# Free Memory
+
+if [[ "$1" == -FreeMem ]]
+    then
+        echo "$(top -l 1 | head -n 10 | grep PhysMem | awk '{print $6}')"
+fi
+
+# Total Virtual Memory
+
+if [[ "$1" == -VMT ]]
+    then
+        free=$(vm_stat | grep free: | awk 'NF>1{print $NF}' | sed 's/[^0-9]*//g')
+	active=$(vm_stat | grep " active:" | awk 'NF>1{print $NF}' | sed 's/[^0-9]*//g')
+	inactive=$(vm_stat | grep " inactive:" | awk 'NF>1{print $NF}' | sed 's/[^0-9]*//g')
+        sum=$(( ($free + $active + $inactive ) * 4096 / 1024 /1024 ))
+        echo "$sum"
+fi
+
+# Free Virtual Memory
+
+if [[ "$1" == -VMF ]]
+    then
+        raw=$(vm_stat | grep free: | awk 'NF>1{print $NF}' | sed 's/[^0-9]*//g')
+	sum=$(( ($raw * 4096) / 1024 /1024 ))
+	echo "$sum"
+fi
+
+# Network Packets in
+if [[ "$1" == -NetIn ]]
+    then
+        echo "$(top -l 1 | head -n 10 | grep packets | awk '{print $3}' | cut -d "/" -f2)"
+fi
+
+# Network Packets Out
+
+if [[ "$1" == -NetIn ]]
+    then
+        echo "$(top -l 1 | head -n 10 | grep packets | awk '{print $5}' | cut -d "/" -f2)"
+fi

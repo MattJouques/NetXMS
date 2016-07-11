@@ -1,0 +1,81 @@
+#!/bin/bash
+#
+# Script to monitor processes
+#
+
+#
+# Script Variables
+#
+_SName=monitor_pid
+
+#
+# Command Line Check
+#
+if [ $# -eq 0 ]
+   then 
+	echo "Error-1" 
+	exit 1
+fi
+
+#
+# Help Function
+#
+if [[ "$1" == -h ]]; then
+	echo ""
+	echo "Help function for: $_SName"
+        echo ""
+        echo "Available Switches:"
+        echo "-p	Check process status"
+        echo "-m	Check process memory"
+        echo "-c	Check process CPU usage"
+        echo "-h	Display this help"
+        echo ""
+        echo "Usage: 	-switch <process name>"
+        echo ""
+        echo "This script is designed to return a single value for use in Monitoring applications"
+	echo ""
+	exit 1
+fi
+
+#
+# Find the PID of the process
+#
+
+if [ -z "$2" ]
+    then
+	echo "Error"
+	exit 1
+fi
+
+p_pid="$(pgrep -o $2)"
+
+if [ -z "$p_pid" ]
+    then
+       	echo "DOWN"
+	exit 1
+fi
+
+#
+# Get requested info
+#
+if [[ "$1" == -p ]]
+    then
+	echo "UP"
+fi
+if [[ "$1" == -m ]]
+    then
+	echo "$(/usr/bin/top -l 1 -pid "$p_pid" -stats "MEM" | tail -n 1 | head -n 2)"
+fi
+if [[ "$1" == -c ]]
+    then
+        #echo "$(/usr/bin/top -l 1 -pid "$p_pid" | grep "$p_pid" | awk '{print $3}')"
+	echo "$(/usr/bin/top -l 1 -pid 98 -stats "CPU"  | tail -n 1 | head -n 2)"
+fi
+
+
+
+
+
+
+
+
